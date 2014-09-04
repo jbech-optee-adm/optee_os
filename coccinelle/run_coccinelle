@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo $@
+for f in `find $@/coccinelle/semantic_patches/ -name '*.cocci' -type f | sort`; do 
+	echo Running spatch using semantic patch: $f
+	spatch -out-place --very-quiet -sp_file $f -no_includes -include_headers -dir /home/jbech/devel/fvp_optee/optee_os -I lib/libutils/isoc/include -I lib/libutils/ext/include -I lib/libmpa/include -I core/lib/libtomcrypt/include -I core/arch/arm32/plat-orly2/.  -I core/include -I core/arch/arm32/include -I lib/libutee/include
+done;
