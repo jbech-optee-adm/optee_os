@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Linaro Limited
+ * Copyright (c) 2016, Linaro Limited
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,12 @@ typedef struct TEE_tcpSocket_Setup_s {
 	TEE_ipSocket_ipVersion ipVersion;
 	char *server_addr;
 	int server_port;
+	int server_addr_len; /* Extension to the spec */
 } TEE_tcpSocket_Setup;
 
 struct tcp_socket_context {
 	int sockfd;
-	uint32_t *protocol_error;
+	uint32_t protocol_error;
 };
 
 /* declare the function pointer handle */

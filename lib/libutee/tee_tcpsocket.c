@@ -30,13 +30,26 @@
 #include <tee_tcpsocket.h>
 #include <utee_syscalls.h>
 
+#if 0
+static size_t get_inetaddr_len(TEE_ipSocket_ipVersion version)
+{
+	/* Default to TEE_IP_VERSION_4 */
+	size_t size = INET_ADDRSTRLEN;
+	
+	if (version == TEE_IP_VERSION_DC ||
+	    version == TEE_IP_VERSION_6)
+		size = INET6_ADDRSTRLEN;
+
+	return size;
+}
+#endif
+
 static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 			   void *setup,
 			   uint32_t *protocolError)
 {
-	struct tcp_socket_context *tcp_ctx;
-	TEE_tcpSocket_Setup *tcp_setup;
-	/* FIXME: Just stubbed so far */
+	struct tcp_socket_context *tcp_ctx = (struct tcp_socket_context *)ctx;
+	TEE_tcpSocket_Setup *tcp_setup = setup;
 	TEE_Result res = TEE_ERROR_BAD_PARAMETERS;
 
 	(void)protocolError;
@@ -50,13 +63,14 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 		 */
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
 
-	tcp_setup = (TEE_tcpSocket_Setup *)setup;
 	DMSG("tcp_setup->ipVersion: 0x%08x\n"
 	     "tcp_setup->server_addr: %s\n"
-	     "tcp_setup->port: 0x%08x",
+	     "tcp_setup->port: 0x%08x\n"
+	     "tcp_setup->addr_len: 0x%08x",
 	     tcp_setup->ipVersion,
 	     tcp_setup->server_addr,
-	     tcp_setup->server_port);
+	     tcp_setup->server_port,
+	     tcp_setup->server_addr_len);
 
 	if (tcp_setup->ipVersion != TEE_IP_VERSION_4 &&
 	    tcp_setup->ipVersion != TEE_IP_VERSION_6 &&
@@ -64,24 +78,12 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
 
 	if (!tcp_setup->server_addr ||
-	    tcp_setup->server_port == 0)
+	    tcp_setup->server_port == 0 ||
+	    tcp_setup->server_addr_len == 0)
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
 
-	tcp_ctx = TEE_Malloc(sizeof(struct tcp_socket_context),
-			     TEE_MALLOC_FILL_ZERO);
-	if (!tcp_ctx) {
-		*ctx = TEE_HANDLE_NULL;
-		return TEE_ERROR_OUT_OF_MEMORY;
-	}
-
-	*ctx = (TEE_iSocketHandle)tcp_ctx;
-
-	tcp_ctx->protocol_error = protocolError;
-
-#if 0
-	/* syscall not implemented yet */
-	res = utee_socket_open(tcp_setup);
-#endif
+	res = utee_socket_open(tcp_setup, tcp_ctx);
+	*protocolError = tcp_ctx->protocol_error;
 
 	return res;
 }

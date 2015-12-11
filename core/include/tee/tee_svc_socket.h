@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2015, Linaro Limited
+ * Copyright (c) 2016, Linaro Limited
  * All rights reserved.
  *
- // * Redistribution and use in source and binary forms, with or without
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -24,46 +24,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef TEE_ISOCKET_H
-#define TEE_ISOCKET_H
+#ifndef TEE_SVC_SOCKET_H
+#define TEE_SVC_SOCKET_H
 
-#define TEE_ISOCKET_ERROR_PROTOCOL 		0xF1007001
-#define TEE_ISOCKET_ERROR_REMOTE_CLOSED 	0xF1007002
-#define TEE_ISOCKET_ERROR_TIMEOUT 		0xF1007003
-#define TEE_ISOCKET_ERROR_OUT_OF_RESOURCES	0xF1007004
-#define TEE_ISOCKET_ERROR_LARGE_BUFFER		0xF1007005
+/* Define as in Linux kernel */
+#define INET_ADDRSTRLEN         (16)
+#define INET6_ADDRSTRLEN        (48)
+
+/* The structure used when sending data to tee-supplicant */
+struct socket_payload {
+	uint32_t ip_version;
+	uint8_t server_addr[INET6_ADDRSTRLEN];
+	uint8_t server_addr_len;
+	uint32_t server_port;
+	int sockfd;
+	uint32_t protocol_error;
+};
 
 /*
- * Opaque type for the handles used by the different sockets.
+ * Syscall that implemented the open function.
  */
-typedef struct __TEE_iSocketHandle *TEE_iSocketHandle;
-
-typedef const struct TEE_iSocket_s
-{
-	uint32_t TEE_iSocketVersion;
-	uint8_t protocolID;
-	TEE_Result (* open)(TEE_iSocketHandle *ctx,
-			    void *setup,
-			    uint32_t *protocolError);
-
-	TEE_Result (* close)(TEE_iSocketHandle ctx);
-
-	TEE_Result (* send)(TEE_iSocketHandle ctx,
-			    const void *buf,
-			    uint32_t *length,
-			    uint32_t timeout);
-
-	TEE_Result (* recv)(TEE_iSocketHandle ctx,
-			    void *buf,
-			    uint32_t *length,
-			    uint32_t timeout);
-
-	uint32_t (* error)(TEE_iSocketHandle ctx);
-
-	TEE_Result (* ioctl)(TEE_iSocketHandle ctx,
-			     uint32_t commandCode,
-			     const void *buf,
-			     uint32_t *length);
-} TEE_iSocket;
+TEE_Result syscall_socket_open(void *setup, void *ctx);
 
 #endif
