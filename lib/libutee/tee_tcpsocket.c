@@ -78,10 +78,8 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 
 	tcp_ctx->protocol_error = protocolError;
 
-#if 0
 	/* syscall not implemented yet */
 	res = utee_socket_open(tcp_setup);
-#endif
 
 	return res;
 }

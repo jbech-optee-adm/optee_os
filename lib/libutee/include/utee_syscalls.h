@@ -294,4 +294,7 @@ TEE_Result utee_se_channel_close(unsigned long c);
 /* op is of type enum utee_cache_operation */
 TEE_Result utee_cache_operation(void *va, size_t l, unsigned long op);
 
+/* setup is protocol specific and contains data to setup a connection */
+TEE_Result utee_socket_open(void *setup);
+
 #endif /* UTEE_SYSCALLS_H */
