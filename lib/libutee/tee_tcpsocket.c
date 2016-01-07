@@ -38,10 +38,41 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 			   void *setup,
 			   uint32_t *protocolError)
 {
+	struct tcp_socket_context *tcp_ctx;
+	TEE_tcpSocket_Setup *tcp_setup;
 	/* FIXME: Just stubbed so far */
-	(void)ctx;
-	(void)setup;
+
 	(void)protocolError;
+
+	if (!ctx || !setup || !protocolError)
+		/*
+		 * FIXME: Should be updated to return the correct panic
+		 * identifier, in this case:
+		 * Specification Number: 103, Function Number: 0x101
+		 */
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
+
+	tcp_setup = (TEE_tcpSocket_Setup *)setup;
+
+	if (tcp_setup->ipVersion != TEE_IP_VERSION_4 ||
+	    tcp_setup->ipVersion != TEE_IP_VERSION_6 ||
+	    tcp_setup->ipVersion != TEE_IP_VERSION_DC)
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
+
+	if (!tcp_setup->server_addr ||
+	    tcp_setup->server_port <= 0)
+		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
+
+	tcp_ctx = TEE_Malloc(sizeof(struct tcp_socket_context),
+			     TEE_MALLOC_FILL_ZERO);
+	if (!tcp_ctx) {
+		*ctx = TEE_HANDLE_NULL;
+		return TEE_ERROR_OUT_OF_MEMORY;
+	}
+
+	*ctx = (TEE_iSocketHandle)tcp_ctx;
+
+	tcp_ctx->protocol_error = protocolError;
 
 	return TEE_SUCCESS;
 }
