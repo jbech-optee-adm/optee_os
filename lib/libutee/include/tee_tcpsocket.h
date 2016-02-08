@@ -47,6 +47,11 @@ typedef struct TEE_tcpSocket_Setup_s {
 	int server_port;
 } TEE_tcpSocket_Setup;
 
+struct tcp_socket_context {
+	int sockfd;
+	uint32_t *protocol_error;
+};
+
 /* declare the function pointer handle */
 extern const TEE_iSocket *TEE_tcpSocket;
 

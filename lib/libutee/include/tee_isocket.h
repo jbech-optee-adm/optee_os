@@ -33,6 +33,9 @@
 #define TEE_ISOCKET_ERROR_OUT_OF_RESOURCES	0xF1007004
 #define TEE_ISOCKET_ERROR_LARGE_BUFFER		0xF1007005
 
+/*
+ * Opaque type for the handles used by the different sockets.
+ */
 typedef struct __TEE_iSocketHandle *TEE_iSocketHandle;
 
 typedef const struct TEE_iSocket_s

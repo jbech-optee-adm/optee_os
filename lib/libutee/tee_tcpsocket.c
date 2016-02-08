@@ -28,11 +28,7 @@
 
 #include <tee_internal_api.h>
 #include <tee_tcpsocket.h>
-
-struct tcp_socket_context {
-	int sockfd;
-	uint32_t *protocol_error;
-};
+#include <utee_syscalls.h>
 
 static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 			   void *setup,
@@ -41,6 +37,7 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 	struct tcp_socket_context *tcp_ctx;
 	TEE_tcpSocket_Setup *tcp_setup;
 	/* FIXME: Just stubbed so far */
+	TEE_Result res = TEE_ERROR_BAD_PARAMETERS;
 
 	(void)protocolError;
 
@@ -74,7 +71,9 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 
 	tcp_ctx->protocol_error = protocolError;
 
-	return TEE_SUCCESS;
+	res = utee_socket_open(tcp_setup);
+
+	return res;
 }
 
 static TEE_Result tcp_close(TEE_iSocketHandle ctx)
