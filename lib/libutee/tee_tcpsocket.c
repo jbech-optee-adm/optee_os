@@ -40,6 +40,7 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 	TEE_Result res = TEE_ERROR_BAD_PARAMETERS;
 
 	(void)protocolError;
+	DMSG("Entered");
 
 	if (!ctx || !setup || !protocolError)
 		/*
@@ -50,11 +51,19 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS);
 
 	tcp_setup = (TEE_tcpSocket_Setup *)setup;
+	DMSG("tcp_setup->ipVersion: 0x%08x\n"
+	     "tcp_setup->server_addr: %s\n"
+	     "tcp_setup->port: 0x%08x",
+	     tcp_setup->ipVersion,
+	     tcp_setup->server_addr,
+	     tcp_setup->server_port);
 
+#if 0
 	if (tcp_setup->ipVersion != TEE_IP_VERSION_4 ||
 	    tcp_setup->ipVersion != TEE_IP_VERSION_6 ||
 	    tcp_setup->ipVersion != TEE_IP_VERSION_DC)
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
+#endif
 
 	if (!tcp_setup->server_addr ||
 	    tcp_setup->server_port <= 0)

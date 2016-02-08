@@ -30,6 +30,7 @@
 #include <kernel/tee_rpc.h>
 #include <mm/core_mmu.h>
 #include <util.h>
+#include <trace.h>
 
 /* FIXME: Eventually this shouldn't be needed here */
 #include <tee_tcpsocket.h>
@@ -73,6 +74,7 @@ TEE_Result syscall_socket_open(void *setup)
 	params.u.memref.buf_ptr = phpayload;
 	params.u.memref.size = sizeof(struct TEE_tcpSocket_Setup_s);
 
+	DMSG("Calling tee-supplicant with (TEE_SOCKET_TCP_OPEN)");
 	res = thread_rpc_cmd(TEE_SOCKET_TCP_OPEN, 1, &params);
 exit:
 	thread_optee_rpc_free_payload(cookie);
