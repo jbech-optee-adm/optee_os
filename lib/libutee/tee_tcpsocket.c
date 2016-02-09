@@ -58,15 +58,13 @@ static TEE_Result tcp_open(TEE_iSocketHandle *ctx,
 	     tcp_setup->server_addr,
 	     tcp_setup->server_port);
 
-#if 0
-	if (tcp_setup->ipVersion != TEE_IP_VERSION_4 ||
-	    tcp_setup->ipVersion != TEE_IP_VERSION_6 ||
+	if (tcp_setup->ipVersion != TEE_IP_VERSION_4 &&
+	    tcp_setup->ipVersion != TEE_IP_VERSION_6 &&
 	    tcp_setup->ipVersion != TEE_IP_VERSION_DC)
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
-#endif
 
 	if (!tcp_setup->server_addr ||
-	    tcp_setup->server_port <= 0)
+	    tcp_setup->server_port == 0)
 		TEE_Panic(TEE_ERROR_BAD_PARAMETERS); /* MAY panic */
 
 	tcp_ctx = TEE_Malloc(sizeof(struct tcp_socket_context),
