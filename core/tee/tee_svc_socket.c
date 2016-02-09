@@ -28,9 +28,11 @@
 #include <tee/tee_svc_socket.h>
 #include <kernel/thread.h>
 #include <kernel/tee_rpc.h>
+#include <kernel/tee_ta_manager.h>
 #include <mm/core_mmu.h>
 #include <util.h>
 #include <trace.h>
+#include <tee/tee_svc.h>
 
 /* FIXME: Eventually this shouldn't be needed here */
 #include <tee_tcpsocket.h>
@@ -41,29 +43,30 @@ TEE_Result syscall_socket_open(void *setup)
 	paddr_t phpayload = 0;
 	struct teesmc32_param params;
 	TEE_Result res = TEE_ERROR_BAD_PARAMETERS;
-	void *payload = NULL;
+	TEE_tcpSocket_Setup *sock_ctx = NULL;
+	struct tee_ta_session *sess = NULL;
+
+	tee_ta_get_current_session(&sess);
+	tee_ta_set_current_session(NULL);
 
 	/*
 	 * FIXME: Add parameter for different socket types instead of hardcode
 	 * for TCP
 	 */
-	thread_optee_rpc_alloc_payload(sizeof(struct TEE_tcpSocket_Setup_s),
+	thread_optee_rpc_alloc_payload(sizeof(TEE_tcpSocket_Setup),
 				       &phpayload, &cookie);
 	if (!phpayload)
 		return TEE_ERROR_OUT_OF_MEMORY;
 
-	if (!ALIGNMENT_IS_OK(phpayload, struct TEE_tcpSocket_Setup_s)) {
+	if (!ALIGNMENT_IS_OK(phpayload, TEE_tcpSocket_Setup)) {
 		res = TEE_ERROR_GENERIC;
 		goto exit;
 	}
 
-	if (core_pa2va(phpayload, &payload)) {
-		thread_optee_rpc_free_payload(cookie);
+	if (core_pa2va(phpayload, &sock_ctx)) {
 		res = TEE_ERROR_GENERIC;
 		goto exit;
 	}
-
-	payload = setup;
 
 	memset(&params, 0, sizeof(params));
 	params.attr = TEESMC_ATTR_TYPE_MEMREF_INOUT |
@@ -72,9 +75,18 @@ TEE_Result syscall_socket_open(void *setup)
 					TEESMC_ATTR_CACHE_SHIFT;
 
 	params.u.memref.buf_ptr = phpayload;
-	params.u.memref.size = sizeof(struct TEE_tcpSocket_Setup_s);
+	params.u.memref.size = sizeof(TEE_tcpSocket_Setup);
 
-	DMSG("Calling tee-supplicant with (TEE_SOCKET_TCP_OPEN)");
+	res = tee_svc_copy_from_user(sess, sock_ctx, setup,
+				     sizeof(TEE_tcpSocket_Setup));
+
+	if (res != TEE_SUCCESS)
+		goto exit;
+
+	DMSG("Calling tee-supplicant with (TEE_SOCKET_TCP_OPEN: %d, %s)",
+	     sock_ctx->server_port,
+	     sock_ctx->server_addr);
+
 	res = thread_rpc_cmd(TEE_SOCKET_TCP_OPEN, 1, &params);
 exit:
 	thread_optee_rpc_free_payload(cookie);
