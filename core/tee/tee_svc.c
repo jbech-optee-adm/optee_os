@@ -61,8 +61,13 @@ void syscall_log(const void *buf __maybe_unused, size_t len __maybe_unused)
 	*kbuf = '\0';
 
 	/* log as Info/Raw traces */
-	if (tee_svc_copy_from_user(kbuf, buf, len) == TEE_SUCCESS)
+	if (tee_svc_copy_from_user(kbuf, buf, len) == TEE_SUCCESS) {
+# if (TRACE_LEVEL == TRACE_ERROR)
 		TAMSG_RAW("%.*s", (int)len, kbuf);
+# elif (TRACE_LEVEL <= TRACE_FLOW)
+		IMSG_RAW("%.*s", (int)len, kbuf);
+# endif
+	}
 
 	free(kbuf);
 #endif
